@@ -1,37 +1,51 @@
+"use client";
 import { Todo } from "@/types";
-import { Pencil, Trash } from "lucide-react";
+import { Check, Pencil, Trash } from "lucide-react";
 interface Props {
   todo: Todo;
-  isEditing:boolean;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onEdit:(id:number, newText:string) => void;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
+  onInput: (id:string,value:string) => void;
 }
 
-import React from "react";
+import React, { useState } from "react";
 
-export const TodoItem = ({ todo, onToggle, onDelete,isEditing }: Props) => {
+export const TodoItem = ({ todo, onToggle, onDelete, onEdit,onInput }: Props) => {
+  const [text, setText] = useState<string>(todo.text);
   return (
     <li className="flex items-center justify-between py-2 border-b">
       <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={todo.done}
-          onChange={() => onToggle(todo.id)}
-        />
-        {/* {
-          isEditing ? (
-
-          )
-        } */}
-        <span className={todo.done ? "line-through text-gray-500" : ""}>
-          {todo.text}
-        </span>
+        {todo.editable ? (
+          <input
+            type="text"
+            value={todo.text}
+            onInput={(event) => onInput(todo.id,event?.currentTarget.value)}
+          />
+        ) : (
+          <>
+            <input
+              type="checkbox"
+              checked={todo.done}
+              onChange={() => onToggle(todo.id)}
+            />
+            <span className={todo.done ? "line-through text-gray-500" : ""}>
+              {todo.text}
+            </span>
+          </>
+        )}
       </label>
       <div className="flex gap-1">
-        <button className="cursor-pointer">
-          <Pencil size={20} />
-        </button>
+        {todo.editable ? (
+          <button className="cursor-pointer" onClick={() => onEdit(todo.id)}>
+            <Check size={20} />
+          </button>
+        ) : (
+          <button className="cursor-pointer" onClick={() => onEdit(todo.id)}>
+            <Pencil size={20} />
+          </button>
+        )}
+
         <button
           onClick={() => onDelete(todo.id)}
           className="bg-red-500 rounded p-1 cursor-pointer"

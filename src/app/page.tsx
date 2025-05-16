@@ -10,20 +10,22 @@ const options: Option[] = [
 ];
 
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("todos");
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [text, setText] = useState<string>("");
+
   useEffect(() => {
     const selectedDefault = options.find((x) => x.checked);
     if (selectedDefault) {
       setSelected(selectedDefault.id);
     }
   }, [options]);
+  useEffect(() => {
+    const stored = localStorage.getItem("todos");
+    if (stored) {
+      setTodos(JSON.parse(stored));
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
@@ -34,18 +36,41 @@ export default function Home() {
   };
   const existTodosDone = todos.some((todo) => todo.done);
   const addTodo = (text: string) => {
-    setTodos([...todos, { id: Date.now(), text, done: false }]);
+    setTodos([
+      ...todos,
+      { id: crypto.randomUUID(), text, done: false, editable: false },
+    ]);
   };
-  const toggleTodo = (id: number) => {
+  const toggleTodo = (id: string) => {
     setTodos(
       todos.map((todo) =>
         todo.id === id ? { ...todo, done: !todo.done } : todo
       )
     );
   };
-  const deleteTodo = (id: number) => {
+  const deleteTodo = (id: string) => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
+  const handlerEdit = (id: string) => {
+    const todoEdit = todos.find((t) => t.id === id);
+    if (todoEdit) {
+      setTodos(
+        todos.map((todo) =>
+          todo.id === id ? { ...todo, editable: !todo.editable } : todo
+        )
+      );
+    }
+  };
+  const handlerInput = (id:string,value:string) =>{
+    const todoEdit = todos.find((t) => t.id === id);
+    if (todoEdit) {
+      setTodos(
+        todos.map((todo) =>
+          todo.id === id ? { ...todo, text: value } : todo
+        )
+      );
+    }
+  }
 
   const todosFiltrados = todos.filter((todo) => {
     if (selected === "2") return todo.done;
@@ -66,6 +91,8 @@ export default function Home() {
         todos={todosFiltrados}
         onDelete={deleteTodo}
         onToggle={toggleTodo}
+        onEdit={handlerEdit}
+        onInput={handlerInput}
       />
       {existTodosDone && (
         <div className="flex justify-end mt-2">
