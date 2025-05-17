@@ -10,3 +10,4 @@ export {FilterList} from './Todo/FilterList'
 // export {Modal} from './iu/Modal'
 
 export {Dropdown} from './ui/Dropdown'
+export {Table} from './ui/Table'

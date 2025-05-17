@@ -1,6 +1,6 @@
 "use client";
 
-import { Dropdown } from "@/app/components";
+import { Dropdown, Table } from "@/app/components";
 import Modal from "@/app/components/ui/Modal";
 import { Gasto } from "@/types";
 import { OptionSelect } from "@/types/gastos/optionSelect";
@@ -28,12 +28,15 @@ export default function GastosPage() {
   const [categoria, setCategoria] = useState<string>("");
   const [descripcion, setDescripcion] = useState<string>("");
   const [openSelect, setOpenSelect] = useState(false);
-  const [selectService, setSelectService] = useState("");
   const [errors, setErrors] = useState<{
-    descripcion?: string;
+    nombre?: string;
     monto?: string;
+    categoria?: string;
+    descripcion?: string;
+    fecha?: string;
   }>({});
 
+  const [gastos, setGastos] = useState<Gasto[]>([]);
 
   const optionSelect: OptionSelect[] = [
     {
@@ -75,13 +78,20 @@ export default function GastosPage() {
     setCategoria("");
     setDescripcion("");
     setErrors({});
+    setGastos([
+      ...gastos,
+      {...gasto}
+    ])
   };
   const handleOpenSelect = () => {
     setOpenSelect(!openSelect);
   };
   const handleSelectItem = (item: string) => {
-    console.log(item);
+    setCategoria(item);
+    setOpenSelect(false);
   };
+
+  const titles = ["Nombre","Categoria","Fecha","Monto"]
   return (
     <>
       <div className="mx-5 mt-3 flex justify-between">
@@ -94,13 +104,9 @@ export default function GastosPage() {
           <PlusCircle size={20} />
           Agregar tarea
         </button>
-        <Dropdown
-          opciones={optionSelect}
-          onClick={handleOpenSelect}
-          open={openSelect}
-          onSelected={handleSelectItem}
-        />
       </div>
+
+      <Table titles={titles} data={gastos}/>
       {showModal && (
         <Modal onClose={() => setShowModal(false)}>
           <div className="p-4">
@@ -120,12 +126,12 @@ export default function GastosPage() {
                 value={monto}
                 onChange={(e) => setMonto(+e.target.value)}
               />
-              <input
-                type="text"
-                placeholder="Categoria"
-                className="w-full border p-2 rounded"
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value)}
+              <Dropdown
+                opciones={optionSelect}
+                selectOption={categoria}
+                onClick={handleOpenSelect}
+                open={openSelect}
+                onSelected={handleSelectItem}
               />
               <input
                 type="text"
