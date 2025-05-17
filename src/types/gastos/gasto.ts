@@ -5,4 +5,4 @@ export interface Gasto  {
     categoria:string;
     fecha:string;
     descripcion:string;
-}
+}   

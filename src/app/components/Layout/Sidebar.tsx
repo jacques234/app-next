@@ -1,15 +1,16 @@
 "use client";
-import { DollarSign, Home,ListTodo, Menu, X } from "lucide-react";
+import { DollarSign, Home, ListTodo, LogOut, Menu, X } from "lucide-react";
 import React, { useState } from "react";
 import { SidebarItem } from "./SidebarItem";
 import Image from "next/image";
 import Link from "next/link";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 const options = [
   {
     option: "Home",
     icon: <Home size={20} />,
-    path: "/",
+    path: "/dashboard/home",
   },
   {
     option: "To-do",
@@ -25,6 +26,11 @@ const options = [
 
 export const Sidebar = () => {
   const [open, setOpen] = useState<boolean>(false);
+  const { data: session } = useSession();
+  const user = session?.user;
+  const imgAvatar = user
+    ? user.image
+    : "https://flowbite.com/docs/images/logo.svg";
   return (
     <>
       <button
@@ -41,20 +47,17 @@ export const Sidebar = () => {
         } sm:translate-x-0`}
         aria-label="Sidebar"
       >
-        <div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-          <Link
-            href="/"
-            className="flex items-center ps-2.5 mb-5"
-          >
+        <div className="h-11/12 px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+          <Link href="/" className="flex items-center ps-2.5 mb-5">
             <Image
-              src="https://flowbite.com/docs/images/logo.svg"
-              className="h-6 me-3 sm:h-7"
+              src={imgAvatar!}
+              className="me-3 rounded-full"
               alt="Flowbite Logo"
               width={40}
               height={40}
             />
             <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
-              App next
+              {user?.name ?? "App"}
             </span>
           </Link>
           <ul className="space-y-2 font-medium">
@@ -68,6 +71,14 @@ export const Sidebar = () => {
             ))}
           </ul>
         </div>
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="flex items-center h-1/12 gap-3 mx-4 text-white"
+        >
+          <LogOut size={20} />
+          <span>Cerrar sesión</span>
+        </button>
       </aside>
     </>
   );

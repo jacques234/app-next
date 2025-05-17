@@ -6,7 +6,9 @@ import { TableReact } from "@/app/components/ui/TableReact";
 import { Gasto } from "@/types";
 import { OptionSelect } from "@/types/gastos/optionSelect";
 import { PlusCircle } from "lucide-react";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { TableColumn } from "react-data-table-component";
 import { Controller, useForm } from "react-hook-form";
 
@@ -14,7 +16,8 @@ export default function GastosPage() {
   const [showModal, setShowModal] = useState(false);
   const [openSelect, setOpenSelect] = useState(false);
   const [gastos, setGastos] = useState<Gasto[]>([]);
-
+  // const { data: session, status } = useSession();
+  // const router = useRouter();
   const optionSelect: OptionSelect[] = [
     {
       id: crypto.randomUUID(),
@@ -80,6 +83,20 @@ export default function GastosPage() {
     reset();
     setShowModal(false);
   };
+  // useEffect(() => {
+  //   if (status === "unauthenticated") {
+  //     router.push("/api/auth/signin"); // o alguna página como "/login"
+  //   }
+  // }, [status, router]);
+
+  // if (status === "loading") {
+  //   return <p className="p-5 text-gray-700">Verificando sesión...</p>;
+  // }
+
+  // if (status === "unauthenticated") {
+  //   return null;
+  // }
+
   return (
     <>
       <div className="mx-5 mt-3 flex justify-between">
