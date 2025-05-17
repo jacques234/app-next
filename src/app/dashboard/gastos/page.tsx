@@ -1,41 +1,18 @@
 "use client";
 
-import { Dropdown, Table } from "@/app/components";
+import { Dropdown } from "@/app/components";
 import Modal from "@/app/components/ui/Modal";
+import { TableReact } from "@/app/components/ui/TableReact";
 import { Gasto } from "@/types";
 import { OptionSelect } from "@/types/gastos/optionSelect";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { z } from "zod";
-
-const gastoSchema = z.object({
-  nombre: z.string().min(1, "El nombre es obligatorio."),
-  monto: z
-    .number({
-      required_error: "El monto es obligatorio",
-      invalid_type_error: "Debe ser un numero",
-    })
-    .positive("El monto debe de ser mayor a cero"),
-  categoria: z.string().min(1, "La categoria es obligatoria"),
-  fecha: z.string().min(1, "La fecha es requerida"),
-  descripcion: z.string().min(1, "La descripcion es requerida"),
-});
+import { TableColumn } from "react-data-table-component";
+import { Controller, useForm } from "react-hook-form";
 
 export default function GastosPage() {
   const [showModal, setShowModal] = useState(false);
-  const [nombre, setNombre] = useState<string>("");
-  const [monto, setMonto] = useState<number>(0);
-  const [categoria, setCategoria] = useState<string>("");
-  const [descripcion, setDescripcion] = useState<string>("");
   const [openSelect, setOpenSelect] = useState(false);
-  const [errors, setErrors] = useState<{
-    nombre?: string;
-    monto?: string;
-    categoria?: string;
-    descripcion?: string;
-    fecha?: string;
-  }>({});
-
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
   const optionSelect: OptionSelect[] = [
@@ -48,50 +25,61 @@ export default function GastosPage() {
       value: "Vivienda",
     },
   ];
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const gasto: Gasto = {
-      id: crypto.randomUUID(),
-      nombre: nombre,
-      monto: monto,
-      categoria: categoria,
-      fecha: new Date().toISOString().split("T")[0],
-      descripcion: descripcion,
-    };
-
-    const parsed = gastoSchema.safeParse({
-      ...gasto,
-    });
-
-    if (!parsed.success) {
-      const fieldErrors: typeof errors = {};
-      for (const err of parsed.error.errors) {
-        fieldErrors[err.path[0] as keyof typeof errors] = err.message;
-      }
-      setErrors(fieldErrors);
-      return;
-    }
-    console.log("Datos válidos:", parsed.data);
-    setShowModal(false);
-    setNombre("");
-    setMonto(0);
-    setCategoria("");
-    setDescripcion("");
-    setErrors({});
-    setGastos([
-      ...gastos,
-      {...gasto}
-    ])
-  };
   const handleOpenSelect = () => {
     setOpenSelect(!openSelect);
   };
-  const handleSelectItem = (item: string) => {
-    setCategoria(item);
-    setOpenSelect(false);
-  };
 
-  const titles = ["Nombre","Categoria","Fecha","Monto"]
+  const columns: TableColumn<Gasto>[] = [
+    {
+      name: "Nombre",
+      selector: (row) => row.nombre,
+      sortable: true,
+    },
+    {
+      name: "Monto",
+      selector: (row) => `$${row.monto.toFixed(2)}`,
+    },
+    {
+      name: "Categoría",
+      selector: (row) => row.categoria,
+    },
+    {
+      name: "Fecha",
+      selector: (row) => row.fecha,
+    },
+  ];
+  type Inputs = {
+    nombre: string;
+    monto: number;
+    categoria: string;
+    descripcion: string;
+  };
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<Inputs>({
+    defaultValues: {
+      nombre: "",
+      monto: 0,
+      categoria: "",
+      descripcion: "",
+    },
+  });
+
+  const onSubmit = (data: Inputs) => {
+    const nuevoGasto: Gasto = {
+      id: crypto.randomUUID(),
+      ...data,
+      fecha: new Date().toISOString().split("T")[0],
+    };
+
+    setGastos([...gastos, nuevoGasto]);
+    reset();
+    setShowModal(false);
+  };
   return (
     <>
       <div className="mx-5 mt-3 flex justify-between">
@@ -106,48 +94,80 @@ export default function GastosPage() {
         </button>
       </div>
 
-      <Table titles={titles} data={gastos}/>
+      <TableReact data={gastos} columns={columns} />
       {showModal && (
         <Modal onClose={() => setShowModal(false)}>
           <div className="p-4">
             <h2 className="text-xl font-bold mb-4">Nuevo gasto</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col justify-center space-y-3"
+            >
+              <label htmlFor=""></label>
               <input
-                type="text"
-                placeholder="Nombre"
+                placeholder="nombre"
                 className="w-full border p-2 rounded"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                {...register("nombre", { required: true })}
               />
+              {errors.nombre && (
+                <span className="text-red-600">This field is required</span>
+              )}
               <input
                 type="number"
+                step="0.01"
                 placeholder="Monto"
                 className="w-full border p-2 rounded"
-                value={monto}
-                onChange={(e) => setMonto(+e.target.value)}
+                {...register("monto", {
+                  required: "El monto es obligatorio",
+                  valueAsNumber: true,
+                  min: {
+                    value: 0.01,
+                    message: "El monto debe ser mayor a cero",
+                  },
+                })}
               />
-              <Dropdown
-                opciones={optionSelect}
-                selectOption={categoria}
-                onClick={handleOpenSelect}
-                open={openSelect}
-                onSelected={handleSelectItem}
+              {errors.monto && (
+                <span className="text-red-600">{errors.monto.message}</span>
+              )}
+              <Controller
+                name="categoria"
+                control={control}
+                rules={{ required: "La categoría es obligatoria" }}
+                render={({ field }) => (
+                  <>
+                    <Dropdown
+                      opciones={optionSelect}
+                      selectOption={field.value}
+                      onClick={handleOpenSelect}
+                      open={openSelect}
+                      onSelected={(val) => {
+                        field.onChange(val);
+                        setOpenSelect(false);
+                      }}
+                    />
+                    {errors.categoria && (
+                      <span className="text-red-600">
+                        {errors.categoria.message}
+                      </span>
+                    )}
+                  </>
+                )}
               />
               <input
-                type="text"
-                placeholder="Descripcion"
+                placeholder="descripcion"
                 className="w-full border p-2 rounded"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                {...register("descripcion", { required: true })}
               />
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                  Guardar
-                </button>
-              </div>
+              {errors.descripcion && (
+                <span className="text-red-600">This field is required</span>
+              )}
+
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                Guardar
+              </button>
             </form>
           </div>
         </Modal>
