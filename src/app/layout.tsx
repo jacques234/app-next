@@ -1,9 +1,10 @@
-import './globals.css';
-import type { Metadata } from 'next';
+import { Sidebar } from "./components";
+import "./globals.css";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'To-do App',
-  description: 'App para gestionar tus tareas',
+  title: "To-do App",
+  description: "App para gestionar tus tareas",
 };
 
 export default function RootLayout({
@@ -13,8 +14,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="bg-gray-100 min-h-screen text-gray-900">
-        {children}
+      <body className="flex bg-gray-100 min-h-screen text-gray-900">
+        <Sidebar />
+        {/* <main className="flex w-screen justify-end items-center">{children}</main> */}
+        <div className="ml-64 lg:w-[100%] xl:w-[100%] 2xl:w-[100%] min-h-screen">
+          <div>
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );
