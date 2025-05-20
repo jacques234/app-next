@@ -3,15 +3,69 @@ import { Option, Todo } from "@/types";
 import { useEffect, useState } from "react";
 import { Trash } from "lucide-react";
 import { FilterList, TodoForm, TodoList } from "@/app/components";
+import { todo } from "node:test";
 const options: Option[] = [
   { id: "1", text: "Todos", checked: true },
   { id: "2", text: "Completadas", checked: false },
   { id: "3", text: "Pendientes", checked: false },
 ];
 
-export default function Home() {
+
+
+const getAllTodos = async () => {
+  const response = await fetch("/api/todo");
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error obtener las tareas");
+  }
+
+  const todos: Todo[] = await response.json();
+
+  return todos;
+};
+
+
+
+export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+
+  const handleAddTodo = async (text: string) => {
+  try {
+    const response = await fetch("/api/todo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: text }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error al crear la tarea");
+    }
+
+    const newTodo = await response.json();
+    setTodos((prev) => [...prev, newTodo]);
+  } catch (error) {
+    console.error("Error al crear tarea:", error);
+  }
+};
+
+
+  useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const todos = await getAllTodos();
+        console.log(todos);
+        setTodos(todos); // si tienes un estado
+      } catch (err) {
+        console.error("Error al cargar tareas:", err);
+      }
+    };
+
+    fetchTodos();
+  }, []);
 
   useEffect(() => {
     const selectedDefault = options.find((x) => x.checked);
@@ -19,57 +73,30 @@ export default function Home() {
       setSelected(selectedDefault.id);
     }
   }, [options]);
-  useEffect(() => {
-    const stored = localStorage.getItem("todos");
-    if (stored) {
-      setTodos(JSON.parse(stored));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
 
   const handleSelected = (id: string) => {
     setSelected(id === selected ? null : id);
   };
+  const handleUpdate = (id: string, updates: { name?: string; done?: boolean }) => {
+  setTodos((prev) =>
+    prev.map((todo) =>
+      todo.id === id ? { ...todo, ...updates } : todo
+    )
+  );
+};
+
   const existTodosDone = todos.some((todo) => todo.done);
-  const addTodo = (text: string) => {
-    setTodos([
-      ...todos,
-      { id: crypto.randomUUID(), text, done: false, editable: false },
-    ]);
-  };
-  const toggleTodo = (id: string) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, done: !todo.done } : todo
-      )
-    );
-  };
   const deleteTodo = (id: string) => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
-  const handlerEdit = (id: string) => {
+  const handlerInput = (id: string, value: string) => {
     const todoEdit = todos.find((t) => t.id === id);
     if (todoEdit) {
       setTodos(
-        todos.map((todo) =>
-          todo.id === id ? { ...todo, editable: !todo.editable } : todo
-        )
+        todos.map((todo) => (todo.id === id ? { ...todo, text: value } : todo))
       );
     }
   };
-  const handlerInput = (id:string,value:string) =>{
-    const todoEdit = todos.find((t) => t.id === id);
-    if (todoEdit) {
-      setTodos(
-        todos.map((todo) =>
-          todo.id === id ? { ...todo, text: value } : todo
-        )
-      );
-    }
-  }
 
   const todosFiltrados = todos.filter((todo) => {
     if (selected === "2") return todo.done;
@@ -80,7 +107,7 @@ export default function Home() {
   return (
     <main className="max-w-md mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Mi To-do App</h1>
-      <TodoForm onAdd={addTodo} />
+      <TodoForm onAdd={handleAddTodo} />
       <FilterList
         options={options}
         selected={selected}
@@ -89,9 +116,7 @@ export default function Home() {
       <TodoList
         todos={todosFiltrados}
         onDelete={deleteTodo}
-        onToggle={toggleTodo}
-        onEdit={handlerEdit}
-        onInput={handlerInput}
+        onUpdate={handleUpdate}
       />
       {existTodosDone && (
         <div className="flex justify-end mt-2">

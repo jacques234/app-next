@@ -1,28 +1,29 @@
+"use client";
+
 import { Todo } from "@/types";
 import { TodoItem } from "./TodoItem";
 
 interface Props {
   todos: Todo[];
-  onToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  onEdit: (id:string) => void;
-  onInput: (id:string,value:string) => void;
+  onUpdate: (id: string, updates: { name?: string; done?: boolean }) => void;
 }
 
-export const TodoList = ({ todos,onToggle, onDelete, onEdit,onInput }: Props) => {
+export const TodoList = ({
+  todos,
+  onDelete,
+  onUpdate,
+}: Props) => {
   return (
     <ul>
       {todos.map((todo) => (
-          <TodoItem
-            key={todo.id}
-            todo={todo}
-            onToggle={onToggle}
-            onDelete={onDelete}
-            onEdit={onEdit}
-            onInput={onInput}
-            // isEditing={true}
-          />
-        ))}
+        <TodoItem
+          key={todo.id}
+          todo={todo}
+          onDelete={onDelete}
+          onUpdate={onUpdate}
+        />
+      ))}
     </ul>
   );
 };
