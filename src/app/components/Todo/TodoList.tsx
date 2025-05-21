@@ -5,14 +5,14 @@ import { TodoItem } from "./TodoItem";
 
 interface Props {
   todos: Todo[];
-  onDelete: (id: string) => void;
   onUpdate: (id: string, updates: { name?: string; done?: boolean }) => void;
+  onDelete:(id: string) => void;
 }
 
 export const TodoList = ({
   todos,
-  onDelete,
   onUpdate,
+  onDelete
 }: Props) => {
   return (
     <ul>
@@ -20,8 +20,8 @@ export const TodoList = ({
         <TodoItem
           key={todo.id}
           todo={todo}
-          onDelete={onDelete}
           onUpdate={onUpdate}
+          onDelete={onDelete}
         />
       ))}
     </ul>

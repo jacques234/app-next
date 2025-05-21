@@ -4,8 +4,8 @@ import { Check, Pencil, Trash } from "lucide-react";
 import { useState } from "react";
 interface Props {
   todo: Todo;
-  onDelete: (id: string) => void;
   onUpdate: (id: string, updates: { name?: string; done?: boolean }) => void;
+  onDelete: (id:string) => void;
 }
 
 const updateTodo = async (
@@ -52,7 +52,7 @@ const deleteTodo = async (id: string) => {
   }
 };
 
-export const TodoItem = ({ todo, onDelete, onUpdate }: Props) => {
+export const TodoItem = ({ todo,onUpdate,onDelete }: Props) => {
   const [editable, setEditable] = useState(false);
   const [name, setName] = useState(todo.name);
   const handleEdit = () => {
@@ -66,7 +66,10 @@ export const TodoItem = ({ todo, onDelete, onUpdate }: Props) => {
     }
   };
   const handleDelete = async () => {
-    await deleteTodo(todo.id);
+    const deleted = await deleteTodo(todo.id);
+    if(deleted){
+      onDelete(todo.id)
+    }
   };
   return (
     <li className="flex items-center justify-between py-2 border-b">
@@ -82,8 +85,14 @@ export const TodoItem = ({ todo, onDelete, onUpdate }: Props) => {
             <input
               type="checkbox"
               checked={todo.done}
-              onChange={() => updateTodo(todo.id, { done: !todo.done })}
+              onChange={async () => {
+                const updated = await updateTodo(todo.id, { done: !todo.done });
+                if (updated) {
+                  onUpdate(todo.id, { done: updated.done });
+                }
+              }}
             />
+
             <span className={todo.done ? "line-through text-gray-500" : ""}>
               {todo.name}
             </span>

@@ -3,14 +3,11 @@ import { Option, Todo } from "@/types";
 import { useEffect, useState } from "react";
 import { Trash } from "lucide-react";
 import { FilterList, TodoForm, TodoList } from "@/app/components";
-import { todo } from "node:test";
 const options: Option[] = [
   { id: "1", text: "Todos", checked: true },
   { id: "2", text: "Completadas", checked: false },
   { id: "3", text: "Pendientes", checked: false },
 ];
-
-
 
 const getAllTodos = async () => {
   const response = await fetch("/api/todo");
@@ -24,41 +21,38 @@ const getAllTodos = async () => {
   return todos;
 };
 
-
-
 export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
 
   const handleAddTodo = async (text: string) => {
-  try {
-    const response = await fetch("/api/todo", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name: text }),
-    });
+    try {
+      const response = await fetch("/api/todo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: text }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Error al crear la tarea");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al crear la tarea");
+      }
+
+      const newTodo = await response.json();
+      setTodos((prev) => [...prev, newTodo]);
+    } catch (error) {
+      console.error("Error al crear tarea:", error);
     }
-
-    const newTodo = await response.json();
-    setTodos((prev) => [...prev, newTodo]);
-  } catch (error) {
-    console.error("Error al crear tarea:", error);
-  }
-};
-
+  };
 
   useEffect(() => {
     const fetchTodos = async () => {
       try {
         const todos = await getAllTodos();
         console.log(todos);
-        setTodos(todos); // si tienes un estado
+        setTodos(todos);
       } catch (err) {
         console.error("Error al cargar tareas:", err);
       }
@@ -68,36 +62,26 @@ export default function TodoPage() {
   }, []);
 
   useEffect(() => {
-    const selectedDefault = options.find((x) => x.checked);
-    if (selectedDefault) {
-      setSelected(selectedDefault.id);
-    }
-  }, [options]);
+    setSelected(options.find((x) => x.checked)?.id || null);
+  }, []);
 
   const handleSelected = (id: string) => {
     setSelected(id === selected ? null : id);
   };
-  const handleUpdate = (id: string, updates: { name?: string; done?: boolean }) => {
-  setTodos((prev) =>
-    prev.map((todo) =>
-      todo.id === id ? { ...todo, ...updates } : todo
-    )
-  );
-};
+  const handleUpdate = (
+    id: string,
+    updates: { name?: string; done?: boolean }
+  ) => {
+    setTodos((prev) =>
+      prev.map((todo) => (todo.id === id ? { ...todo, ...updates } : todo))
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    setTodos(todos.filter((t) => t.id != id));
+  };
 
   const existTodosDone = todos.some((todo) => todo.done);
-  const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
-  const handlerInput = (id: string, value: string) => {
-    const todoEdit = todos.find((t) => t.id === id);
-    if (todoEdit) {
-      setTodos(
-        todos.map((todo) => (todo.id === id ? { ...todo, text: value } : todo))
-      );
-    }
-  };
-
   const todosFiltrados = todos.filter((todo) => {
     if (selected === "2") return todo.done;
     if (selected === "3") return !todo.done;
@@ -115,8 +99,8 @@ export default function TodoPage() {
       />
       <TodoList
         todos={todosFiltrados}
-        onDelete={deleteTodo}
         onUpdate={handleUpdate}
+        onDelete={handleDelete}
       />
       {existTodosDone && (
         <div className="flex justify-end mt-2">
