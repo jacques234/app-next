@@ -1,24 +1,28 @@
 "use client";
 
-import { Gasto } from "@/types";
+import { Gasto, User } from "@/types";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Dropdown } from "../ui/Dropdown";
 import { OptionSelect } from "@/types/gastos/optionSelect";
 import { Categoria } from "@prisma/client";
-import { addGasto } from "@/gastos/gastos-actions";
+import { addGasto, updateGasto } from "@/gastos/gastos-actions";
 import { DropdownUser } from "./DropdownUser";
 import { Switch } from "@mui/material";
+import { useSession } from "next-auth/react";
 
 interface PropsFormGasto {
   onSave: () => void;
   gasto?: Gasto;
 }
 export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
+  const { data: session, status } = useSession();
   const [openSelect, setOpenSelect] = useState(false);
   const [categorias, setCategorias] = useState<OptionSelect[]>([]);
   const [compartido, setcompartido] = useState(false);
   const [usuarios, setUsuarios] = useState<OptionSelect[]>([]);
+  const [user, setUser] = useState<OptionSelect>();
+  const [usuariosAsignados, setusuariosAsignados] = useState<User[]>([])
   useEffect(() => {
     const fetchCategorias = async () => {
       const result = await fetch("/api/categorias");
@@ -35,6 +39,19 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
 
     fetchCategorias();
   }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const result = await fetch(`/api/users/${session?.user?.email}`);
+      if (!result.ok) {
+        return;
+      }
+      const data: OptionSelect = await result.json();
+      setUser(data);
+    };
+    fetchUser();
+  }, []);
+  
 
   type Inputs = {
     nombre: string;
@@ -60,13 +77,6 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
   });
   const label = { inputProps: { "aria-label": "Switch" } };
 
-  useEffect(() => {
-    debugger
-    if (gasto) {
-      setcompartido(true);
-    }
-  }, []);
-
   const onClickCompartido = async () => {
     const nuevoValor = !compartido;
     setcompartido(nuevoValor);
@@ -75,14 +85,16 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
     const data: OptionSelect[] = await response.json();
     setUsuarios(data);
   };
-  const onSubmit = async (data: Inputs) => {
-    const session = await fetch("/api/auth/session");
-    const sessionData = await session.json();
 
-    if (!sessionData) {
-      console.error("Usuario no autenticado");
-      return;
+  useEffect(() => {
+    if (gasto?.usuarios.length! > 1) {
+      setcompartido(true);
+      onClickCompartido();
     }
+  }, []);
+
+
+  const onSubmit = async (data: Inputs) => {
     const usuariosSeleccionados = data.usuarios || [];
 
     const nuevoGasto: Gasto = {
@@ -95,8 +107,11 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
       compartido: false,
       usuarios: usuariosSeleccionados,
     };
-
-    await addGasto(nuevoGasto);
+    if (gasto) {
+      await updateGasto(gasto.id, nuevoGasto, compartido);
+    } else {
+      await addGasto(nuevoGasto);
+    }
     reset();
     onSave();
   };
@@ -109,33 +124,40 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col justify-center space-y-3"
     >
-      <label>Nombre</label>
-      <input
-        placeholder="nombre"
-        className="w-full border p-2 rounded"
-        {...register("nombre", { required: true })}
-      />
-      {errors.nombre && (
-        <span className="text-red-600">This field is required</span>
-      )}
-      <label>Monto</label>
-      <input
-        type="number"
-        step="0.01"
-        placeholder="Monto"
-        className="w-full border p-2 rounded"
-        {...register("monto", {
-          required: "El monto es obligatorio",
-          valueAsNumber: true,
-          min: {
-            value: 0.01,
-            message: "El monto debe ser mayor a cero",
-          },
-        })}
-      />
-      {errors.monto && (
-        <span className="text-red-600">{errors.monto.message}</span>
-      )}
+      <label>{user?.name}</label>
+      <label>
+        Nombre
+        <input
+          placeholder="nombre"
+          className="w-full border p-2 rounded"
+          {...register("nombre", { required: true })}
+        />
+        {errors.nombre && (
+          <span className="text-red-600">This field is required</span>
+        )}
+      </label>
+
+      <label>
+        Monto
+        <input
+          type="number"
+          step="0.01"
+          placeholder="Monto"
+          className="w-full border p-2 rounded"
+          {...register("monto", {
+            required: "El monto es obligatorio",
+            valueAsNumber: true,
+            min: {
+              value: 0.01,
+              message: "El monto debe ser mayor a cero",
+            },
+          })}
+        />
+        {errors.monto && (
+          <span className="text-red-600">{errors.monto.message}</span>
+        )}
+      </label>
+
       <Controller
         name="categoria"
         control={control}
@@ -160,17 +182,25 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
         )}
       />
 
-      <input
-        placeholder="descripcion"
-        className="w-full border p-2 rounded"
-        {...register("descripcion", { required: true })}
-      />
-      {errors.descripcion && (
-        <span className="text-red-600">This field is required</span>
-      )}
+      <label>
+        Descripcion
+        <input
+          placeholder="descripcion"
+          className="w-full border p-2 rounded"
+          {...register("descripcion", { required: true })}
+        />
+        {errors.descripcion && (
+          <span className="text-red-600">This field is required</span>
+        )}
+      </label>
+
       <label className="flex flex-col">
         Compartido
-        <Switch {...label} onChange={() => onClickCompartido()} />
+        <Switch
+          {...label}
+          checked={compartido}
+          onChange={() => onClickCompartido()}
+        />
       </label>
 
       {compartido && (
@@ -187,6 +217,7 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
                   onSelect={(usuarios) => {
                     field.onChange(usuarios);
                   }}
+                  selectUsers={gasto?.usuarios}
                 />
                 {errors.usuarios && (
                   <span className="text-red-600">

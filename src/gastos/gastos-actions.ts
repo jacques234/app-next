@@ -14,11 +14,13 @@ export const getGastosUser = async () => {
     }
     const user = await prisma.user.findUnique({
       where: { email: session?.user?.email },
-      include: { gastos: {
-        include:{
-            usuarios:true
-        }
-      } },
+      include: {
+        gastos: {
+          include: {
+            usuarios: true,
+          },
+        },
+      },
     });
     if (!user) {
       return [];
@@ -28,7 +30,50 @@ export const getGastosUser = async () => {
     return [];
   }
 };
+export const updateGasto = async (
+  id: string,
+  gasto: Gasto,
+  compartido: boolean
+) => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { message: "Usuario no autenticado" };
+    }
 
+    const otrosUsuarios = gasto.usuarios?.filter((u) =>
+      compartido ? u.id !== user.id : u.id === user.id
+    ) || [];
+
+    const usuariosConectados = [
+      { id: user.id },
+      ...otrosUsuarios.map((u) => ({ id: u.id })),
+    ];
+    const updatedGasto = await prisma.gasto.update({
+      where: { id },
+      data: {
+        nombre: gasto.nombre,
+        monto: gasto.monto,
+        categoria: gasto.categoria,
+        descripcion: gasto.descripcion,
+        usuarios: {
+          set: [], // limpia las relaciones actuales (si deseas reiniciar)
+          connect: usuariosConectados,
+        },
+      },
+    });
+
+    revalidatePath("/dashboard/gastosSSR");
+
+    return {
+      ...updatedGasto,
+      monto: updatedGasto.monto.toNumber(), // si es Decimal
+    };
+  } catch (error) {
+    console.error("Error actualizando gasto:", error);
+    return { message: "Error al actualizar gasto" };
+  }
+};
 export const addGasto = async (gasto: Gasto) => {
   try {
     const user = await getCurrentUser();
