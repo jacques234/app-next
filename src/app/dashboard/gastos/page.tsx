@@ -6,8 +6,6 @@ import { TableReact } from "@/app/components/ui/TableReact";
 import { Gasto } from "@/types";
 import { OptionSelect } from "@/types/gastos/optionSelect";
 import { PlusCircle } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TableColumn } from "react-data-table-component";
 import { Controller, useForm } from "react-hook-form";
@@ -21,11 +19,11 @@ export default function GastosPage() {
   const optionSelect: OptionSelect[] = [
     {
       id: crypto.randomUUID(),
-      value: "Servicios",
+      name: "Servicios",
     },
     {
       id: crypto.randomUUID(),
-      value: "Vivienda",
+      name: "Vivienda",
     },
   ];
   const handleOpenSelect = () => {
@@ -83,19 +81,6 @@ export default function GastosPage() {
     reset();
     setShowModal(false);
   };
-  // useEffect(() => {
-  //   if (status === "unauthenticated") {
-  //     router.push("/api/auth/signin"); // o alguna página como "/login"
-  //   }
-  // }, [status, router]);
-
-  // if (status === "loading") {
-  //   return <p className="p-5 text-gray-700">Verificando sesión...</p>;
-  // }
-
-  // if (status === "unauthenticated") {
-  //   return null;
-  // }
 
   return (
     <>

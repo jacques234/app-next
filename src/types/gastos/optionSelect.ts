@@ -1,4 +1,4 @@
 export interface OptionSelect {
     id:string;
-    value:string;
+    name:string;
 }

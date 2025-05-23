@@ -7,15 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// model User {
+//   id            String    @id @default(cuid())
+//   name          String?
+//   email         String    @unique
+//   emailVerified DateTime?
+//   image         String?
+//   accounts      Account[]
+//   sessions      Session[]
+//   task          Todo[]
+//   gasto         Gasto[]
+// }
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   task          Todo[]
+
+  gastos        Gasto[]  @relation("GastosUsuarios")
 }
 
 model Todo {
@@ -24,6 +37,32 @@ model Todo {
   done   Boolean @default(false)
   userId String
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// model Gasto {
+//   id          String   @id @default(cuid())
+//   nombre      String
+//   monto       Decimal
+//   descripcion String
+//   categoria   String
+//   fecha       DateTime @default(now())
+//   userId      String
+//   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+model Gasto {
+  id          String   @id @default(cuid())
+  nombre      String
+  monto       Decimal
+  descripcion String
+  categoria   String
+  fecha       DateTime @default(now())
+
+  usuarios    User[]   @relation("GastosUsuarios")
+}
+model Categoria {
+  id   String @id @default(cuid())
+  name String
 }
 
 model Account {

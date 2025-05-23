@@ -20,10 +20,10 @@ export default function Modal({ children, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
-      onClick={onClose}
+      // onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl max-w-md w-full p-5"
+        className="bg-white rounded-xl shadow-xl max-w-md w-full p-5 max-h-[95vh] overflow-auto no-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
         <button

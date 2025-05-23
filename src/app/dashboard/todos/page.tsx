@@ -3,6 +3,7 @@ import { Option, Todo } from "@/types";
 import { useEffect, useState } from "react";
 import { Trash } from "lucide-react";
 import { FilterList, TodoForm, TodoList } from "@/app/components";
+import { ClipLoader, MoonLoader } from "react-spinners";
 const options: Option[] = [
   { id: "1", text: "Todos", checked: true },
   { id: "2", text: "Completadas", checked: false },
@@ -24,6 +25,7 @@ const getAllTodos = async () => {
 export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false)
 
   const handleAddTodo = async (text: string) => {
     try {
@@ -50,9 +52,11 @@ export default function TodoPage() {
   useEffect(() => {
     const fetchTodos = async () => {
       try {
+        setLoading(true)
         const todos = await getAllTodos();
         console.log(todos);
         setTodos(todos);
+        setLoading(false)
       } catch (err) {
         console.error("Error al cargar tareas:", err);
       }
@@ -97,6 +101,9 @@ export default function TodoPage() {
         selected={selected}
         onSelect={handleSelected}
       />
+      <div className="flex justify-center">
+        <MoonLoader size={20} loading={loading} />
+      </div>
       <TodoList
         todos={todosFiltrados}
         onUpdate={handleUpdate}

@@ -22,6 +22,11 @@ const options = [
     icon: <DollarSign size={20} />,
     path: "/dashboard/gastos",
   },
+  {
+    option: "Gestor de gastos SSR",
+    icon: <DollarSign size={20} />,
+    path: "/dashboard/gastosSSR",
+  },
 ];
 
 export const Sidebar = () => {

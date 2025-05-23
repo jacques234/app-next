@@ -5,7 +5,7 @@ interface Props {
   selectOption:string;
   opciones: OptionSelect[];
   onClick: () => void;
-  onSelected: (item:string) => void;
+  onSelected: (item:OptionSelect) => void;
 }
 
 export const Dropdown = ({ open, selectOption,opciones, onClick, onSelected }: Props) => {
@@ -41,10 +41,10 @@ export const Dropdown = ({ open, selectOption,opciones, onClick, onSelected }: P
             {opciones.map((opcion, index) => (
               <button
                 key={index}
-                onClick={() => onSelected(opcion.value)}
+                onClick={() => onSelected(opcion)}
                 className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
               >
-                {opcion.value}
+                {opcion.name}
               </button>
             ))}
           </div>
