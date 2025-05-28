@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { SidebarItem } from "./SidebarItem";
 import Image from "next/image";
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession,signOut } from "next-auth/react";
 
 const options = [
   {

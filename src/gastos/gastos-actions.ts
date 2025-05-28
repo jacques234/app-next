@@ -1,5 +1,5 @@
 "use server";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/getUser";
 import prisma from "@/lib/prisma";
 import { Gasto } from "@/types";

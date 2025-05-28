@@ -1,10 +1,8 @@
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "../../auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { findTodoOr404 } from "@/todos/helpers/utils";
-import { Todo } from "@/types";
+import { authOptions } from "@/lib/auth";
 
 
 interface Segments {

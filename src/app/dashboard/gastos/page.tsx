@@ -6,7 +6,7 @@ import { TableReact } from "@/app/components/ui/TableReact";
 import { Gasto } from "@/types";
 import { OptionSelect } from "@/types/gastos/optionSelect";
 import { PlusCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import { TableColumn } from "react-data-table-component";
 import { Controller, useForm } from "react-hook-form";
 
@@ -75,6 +75,8 @@ export default function GastosPage() {
       id: crypto.randomUUID(),
       ...data,
       fecha: new Date().toISOString().split("T")[0],
+      compartido: false,
+      usuarios: []
     };
 
     setGastos([...gastos, nuevoGasto]);

@@ -1,5 +1,5 @@
 import { Gasto } from "@/types";
-import { date } from "zod";
+
 
 interface Props {
   titles: string[];

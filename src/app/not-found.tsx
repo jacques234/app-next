@@ -1,4 +1,4 @@
-import { ArrowLeft, Home, Info } from "lucide-react";
+import {Home, Info } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFoundPage() {
@@ -13,7 +13,7 @@ export default function NotFoundPage() {
             Page not found
           </h1>
           <p className="mt-4 text-gray-500 dark:text-gray-400">
-            The page you are looking for doesn't exist. Here are some helpful
+            The page you are looking for doesnt exist. Here are some helpful
             links:
           </p>
 

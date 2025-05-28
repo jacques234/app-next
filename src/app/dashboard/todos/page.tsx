@@ -3,7 +3,7 @@ import { Option, Todo } from "@/types";
 import { useEffect, useState } from "react";
 import { Trash } from "lucide-react";
 import { FilterList, TodoForm, TodoList } from "@/app/components";
-import { ClipLoader, MoonLoader } from "react-spinners";
+import {MoonLoader } from "react-spinners";
 const options: Option[] = [
   { id: "1", text: "Todos", checked: true },
   { id: "2", text: "Completadas", checked: false },

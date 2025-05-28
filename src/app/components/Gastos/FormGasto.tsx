@@ -1,6 +1,6 @@
 "use client";
 
-import { Gasto, User } from "@/types";
+import { Gasto } from "@/types";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Dropdown } from "../ui/Dropdown";
@@ -16,13 +16,12 @@ interface PropsFormGasto {
   gasto?: Gasto;
 }
 export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [openSelect, setOpenSelect] = useState(false);
   const [categorias, setCategorias] = useState<OptionSelect[]>([]);
   const [compartido, setcompartido] = useState(false);
   const [usuarios, setUsuarios] = useState<OptionSelect[]>([]);
   const [user, setUser] = useState<OptionSelect>();
-  const [usuariosAsignados, setusuariosAsignados] = useState<User[]>([])
   useEffect(() => {
     const fetchCategorias = async () => {
       const result = await fetch("/api/categorias");
@@ -51,7 +50,6 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
     };
     fetchUser();
   }, []);
-  
 
   type Inputs = {
     nombre: string;
@@ -87,12 +85,11 @@ export const FormGasto = ({ onSave, gasto }: PropsFormGasto) => {
   };
 
   useEffect(() => {
-    if (gasto?.usuarios.length! > 1) {
+    if (gasto?.usuarios && gasto.usuarios.length > 1) {
       setcompartido(true);
       onClickCompartido();
     }
   }, []);
-
 
   const onSubmit = async (data: Inputs) => {
     const usuariosSeleccionados = data.usuarios || [];
